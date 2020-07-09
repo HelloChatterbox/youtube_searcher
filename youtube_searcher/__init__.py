@@ -62,23 +62,27 @@ def search_youtube(query, location_code="US"):
     contents = results['contents']['twoColumnSearchResultsRenderer']
     primary = contents["primaryContents"]["sectionListRenderer"][
         "contents"][0]['itemSectionRenderer']['contents']
-    # secondary = contents["secondaryContents"][
-    # "secondarySearchContainerRenderer"]["contents"][0]
-    featured_channel = {"videos": []}
+
+    featured_channel = {"videos": [], "playlists": []}
 
     # because order is not assured we need to make 2 passes over the data
-    for idx, vid in enumerate(primary):
+    for vid in primary:
         if 'channelRenderer' in vid:
             vid = vid['channelRenderer']
-            title = vid["title"]["simpleText"]
-            # Channel info but no vids
-            featured_channel["title"] = title
+            user = vid['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url']
+            featured_channel["title"] = vid["title"]["simpleText"]
+            d = [r["text"] for r in vid['descriptionSnippet']["runs"]]
+            featured_channel["description"] = " ".join(d)
+            featured_channel["user_url"] = base_url + user
 
-    for idx, vid in enumerate(primary):
+    for vid in primary:
         if 'videoRenderer' in vid:
             vid = vid['videoRenderer']
             thumb = vid["thumbnail"]['thumbnails']
-            title = vid["title"]["runs"][0]["text"]
+
+            d = [r["text"] for r in vid['title']["runs"]]
+            title = " ".join(d)
+
             length_caption = \
                 vid["lengthText"]['accessibility']["accessibilityData"][
                     "label"]
@@ -116,7 +120,10 @@ def search_youtube(query, location_code="US"):
             for vid in entries["content"]["verticalListRenderer"]['items']:
                 vid = vid['videoRenderer']
                 thumb = vid["thumbnail"]['thumbnails']
-                title = vid["title"]["runs"][0]["text"]
+                d = [r["text"] for r in vid['title']["runs"]]
+                title = " ".join(d)
+
+
                 length_caption = \
                     vid["lengthText"]['accessibility']["accessibilityData"][
                         "label"]
@@ -192,6 +199,60 @@ def search_youtube(query, location_code="US"):
                 "videoId": videoId,
                 "playlistId": playlistId
             })
+
+    if contents.get("secondaryContents"):
+        secondary = contents["secondaryContents"]["secondarySearchContainerRenderer"]["contents"][0]["universalWatchCardRenderer"]
+        for vid in secondary["sections"]:
+            entries = vid['watchCardSectionSequenceRenderer']
+            for entry in entries['lists']:
+                if 'verticalWatchCardListRenderer' in entry:
+                    for vid in entry['verticalWatchCardListRenderer']["items"]:
+                        vid = vid['watchCardCompactVideoRenderer']
+                        thumbs = vid['thumbnail']['thumbnails']
+
+                        d = [r["text"] for r in vid['title']["runs"]]
+                        title = " ".join(d)
+
+                        url = vid['navigationEndpoint']['commandMetadata'][
+                            'webCommandMetadata']['url']
+                        videoId = vid['navigationEndpoint']['watchEndpoint']['videoId']
+                        playlistId =  vid['navigationEndpoint']['watchEndpoint']['playlistId']
+                        length_caption = \
+                            vid["lengthText"]['accessibility'][
+                                "accessibilityData"][
+                                "label"]
+                        length_txt = vid["lengthText"]['simpleText']
+
+                        # TODO investigate
+                        # These seem to always be from featured channel
+                        # playlistId doesnt match any extracted playlist
+                        featured_channel["videos"].append(
+                            {
+                                "url": base_url + url,
+                                "title": title,
+                                "length": length_txt,
+                                "length_human": length_caption,
+                                "videoId": videoId,
+                                "playlistId": playlistId,
+                                "thumbnails": thumbs
+                            }
+                        )
+
+                elif 'horizontalCardListRenderer' in entry:
+                    for vid in entry['horizontalCardListRenderer']['cards']:
+                        vid = vid['searchRefinementCardRenderer']
+                        playlistId = vid['searchEndpoint']['watchPlaylistEndpoint'][
+                            'playlistId']
+                        thumbs = vid['thumbnail']['thumbnails']
+                        url = vid['searchEndpoint']['commandMetadata']['webCommandMetadata']['url']
+                        d = [r["text"] for r in vid['query']["runs"]]
+                        title = " ".join(d)
+                        featured_channel["playlists"].append({
+                            "url": base_url + url,
+                            "title": title,
+                            "thumbnails": thumbs,
+                            "playlistId": playlistId
+                        })
 
     data["videos"] = videos
     data["playlists"] = playlists

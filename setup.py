@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='youtube_searcher',
-    version='0.1',
+    version='0.1.1',
     packages=['youtube_searcher'],
     url='',
     license='Apache',
