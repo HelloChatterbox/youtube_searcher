@@ -1,8 +1,9 @@
 from youtube_searcher import search_youtube
-
-query = "Rob Zombie"
+from pprint import pprint
+query = "Ask a spaceman"
 data = search_youtube(query)
 
+pprint(data)
 """
 {'featured_channel': {'title': 'robzombie',
                       'videos': [{'length': '0:51',
@@ -637,9 +638,9 @@ data = search_youtube(query)
              'videoId': 'FVN6CDo02gA'}]}
 """
 
-query = "Space Rock Mix"
-data = search_youtube(query)
-
+query = "Heavy metal compilation"
+#data = search_youtube(query)
+#pprint(data)
 
 """
 {'featured_channel': {'videos': []},

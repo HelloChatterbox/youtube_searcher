@@ -2,12 +2,12 @@ from setuptools import setup
 
 setup(
     name='youtube_searcher',
-    version='0.1.1',
+    version='0.1.2',
     packages=['youtube_searcher'],
-    url='',
+    url='https://github.com/HelloChatterbox/youtube_searcher',
     license='Apache',
     author='jarbasAI',
-    install_requires=["bs4", "requests"],
+    install_requires=["bs4", "requests", "requests_cache"],
     author_email='jarbasai@mailfence.com',
     description='search youtube'
 )

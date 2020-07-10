@@ -1,48 +1,22 @@
 import bs4
-import requests
 import re
 import json
-import random
-
-USER_AGENTS = [
-    ('Mozilla/5.0 (X11; Linux x86_64) '
-     'AppleWebKit/537.36 (KHTML, like Gecko) '
-     'Chrome/57.0.2987.110 '
-     'Safari/537.36'),
-    ('Mozilla/5.0 (X11; Linux x86_64) '
-     'AppleWebKit/537.36 (KHTML, like Gecko) '
-     'Chrome/61.0.3163.79 '
-     'Safari/537.36'),
-    ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) '
-     'Gecko/20100101 '
-     'Firefox/55.0'),  # firefox
-    ('Mozilla/5.0 (X11; Linux x86_64) '
-     'AppleWebKit/537.36 (KHTML, like Gecko) '
-     'Chrome/61.0.3163.91 '
-     'Safari/537.36'),
-    ('Mozilla/5.0 (X11; Linux x86_64) '
-     'AppleWebKit/537.36 (KHTML, like Gecko) '
-     'Chrome/62.0.3202.89 '
-     'Safari/537.36'),
-    ('Mozilla/5.0 (X11; Linux x86_64) '
-     'AppleWebKit/537.36 (KHTML, like Gecko) '
-     'Chrome/63.0.3239.108 '
-     'Safari/537.36'),
-    ("Mozilla/5.0 (Windows NT 6.1; WOW64) "
-     "AppleWebKit/537.36 (KHTML, like Gecko) "
-     "Chrome/ 58.0.3029.81 Safari/537.36"),
-]
+from youtube_searcher.session import session
 
 
-def search_youtube(query, location_code="US"):
+def search_youtube(query, location_code="US",
+                   user_agent='Mozilla/5.0 (X11; Linux x86_64) '
+                              'AppleWebKit/537.36 (KHTML, like Gecko) '
+                              'Chrome/57.0.2987.110 '
+                              'Safari/537.36'):
     base_url = "https://www.youtube.com"
     headers = {
-        'User-Agent': random.choice(USER_AGENTS)
+        'User-Agent': user_agent
     }
     params = {"search_query": query,
               "gl": location_code}
     url = 'https://www.youtube.com/results'
-    html = requests.get(url, headers=headers, params=params).text
+    html = session.get(url, headers=headers, params=params).text
     soup = bs4.BeautifulSoup(html, 'html.parser')
     blob = str(soup.find('script', string=re.compile('ytInitialData')))
     s = """window["ytInitialData"] = """
@@ -69,7 +43,9 @@ def search_youtube(query, location_code="US"):
     for vid in primary:
         if 'channelRenderer' in vid:
             vid = vid['channelRenderer']
-            user = vid['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url']
+            user = \
+            vid['navigationEndpoint']['commandMetadata']['webCommandMetadata'][
+                'url']
             featured_channel["title"] = vid["title"]["simpleText"]
             d = [r["text"] for r in vid['descriptionSnippet']["runs"]]
             featured_channel["description"] = " ".join(d)
@@ -122,7 +98,6 @@ def search_youtube(query, location_code="US"):
                 thumb = vid["thumbnail"]['thumbnails']
                 d = [r["text"] for r in vid['title']["runs"]]
                 title = " ".join(d)
-
 
                 length_caption = \
                     vid["lengthText"]['accessibility']["accessibilityData"][
@@ -201,7 +176,9 @@ def search_youtube(query, location_code="US"):
             })
 
     if contents.get("secondaryContents"):
-        secondary = contents["secondaryContents"]["secondarySearchContainerRenderer"]["contents"][0]["universalWatchCardRenderer"]
+        secondary = \
+        contents["secondaryContents"]["secondarySearchContainerRenderer"][
+            "contents"][0]["universalWatchCardRenderer"]
         for vid in secondary["sections"]:
             entries = vid['watchCardSectionSequenceRenderer']
             for entry in entries['lists']:
@@ -215,8 +192,11 @@ def search_youtube(query, location_code="US"):
 
                         url = vid['navigationEndpoint']['commandMetadata'][
                             'webCommandMetadata']['url']
-                        videoId = vid['navigationEndpoint']['watchEndpoint']['videoId']
-                        playlistId =  vid['navigationEndpoint']['watchEndpoint']['playlistId']
+                        videoId = vid['navigationEndpoint']['watchEndpoint'][
+                            'videoId']
+                        playlistId = \
+                        vid['navigationEndpoint']['watchEndpoint'][
+                            'playlistId']
                         length_caption = \
                             vid["lengthText"]['accessibility'][
                                 "accessibilityData"][
@@ -241,10 +221,12 @@ def search_youtube(query, location_code="US"):
                 elif 'horizontalCardListRenderer' in entry:
                     for vid in entry['horizontalCardListRenderer']['cards']:
                         vid = vid['searchRefinementCardRenderer']
-                        playlistId = vid['searchEndpoint']['watchPlaylistEndpoint'][
+                        playlistId = \
+                        vid['searchEndpoint']['watchPlaylistEndpoint'][
                             'playlistId']
                         thumbs = vid['thumbnail']['thumbnails']
-                        url = vid['searchEndpoint']['commandMetadata']['webCommandMetadata']['url']
+                        url = vid['searchEndpoint']['commandMetadata'][
+                            'webCommandMetadata']['url']
                         d = [r["text"] for r in vid['query']["runs"]]
                         title = " ".join(d)
                         featured_channel["playlists"].append({
