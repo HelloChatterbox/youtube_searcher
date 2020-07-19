@@ -32,6 +32,7 @@ def search_youtube(query, location_code="US",
     related_to_search = []
     related_queries = []
     radio = []
+    movies = []
 
     contents = results['contents']['twoColumnSearchResultsRenderer']
     primary = contents["primaryContents"]["sectionListRenderer"][
@@ -174,6 +175,32 @@ def search_youtube(query, location_code="US",
                 "videoId": videoId,
                 "playlistId": playlistId
             })
+        elif 'movieRenderer' in vid:
+            # full movies
+            vid = vid['movieRenderer']
+            title = " ".join([r["text"] for r in vid['title']["runs"]])
+            thumb = vid["thumbnail"]['thumbnails']
+            videoId = vid['videoId']
+            meta = vid['bottomMetadataItems']
+            meta = [m["simpleText"] for m in meta]
+            desc = " ".join([r["text"] for r in vid['descriptionSnippet']["runs"]])
+            url = vid['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url']
+
+            movies.append({
+                "title": title,
+                "thumbnails": thumb,
+                "url": base_url + url,
+                "videoId": videoId,
+                "metadata": meta,
+                "description": desc
+            })
+        elif 'carouselAdRenderer' in vid:
+            vid = vid["carouselAdRenderer"]
+            # skip ads
+        else:
+            continue
+            # Debug, never reached this point
+            # print(vid)
 
     if contents.get("secondaryContents"):
         secondary = \
@@ -241,4 +268,5 @@ def search_youtube(query, location_code="US",
     data["featured_channel"] = featured_channel
     data["related_videos"] = related_to_search
     data["related_queries"] = related_queries
+    data["full_movies"] = movies
     return data
