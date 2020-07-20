@@ -33,6 +33,7 @@ def search_youtube(query, location_code="US",
     related_queries = []
     radio = []
     movies = []
+    promoted = []
 
     contents = results['contents']['twoColumnSearchResultsRenderer']
     primary = contents["primaryContents"]["sectionListRenderer"][
@@ -80,7 +81,6 @@ def search_youtube(query, location_code="US",
                     "thumbnails": thumb
                 }
             )
-
         elif 'shelfRenderer' in vid:
             entries = vid['shelfRenderer']
             # most recent from channel {title_from_step_above}
@@ -197,11 +197,23 @@ def search_youtube(query, location_code="US",
         elif 'carouselAdRenderer' in vid:
             vid = vid["carouselAdRenderer"]
             # skip ads
-            'showingResultsForRenderer'
         elif 'showingResultsForRenderer' in vid:
             # auto correct for query
             q = vid['showingResultsForRenderer']['correctedQuery']
             data["corrected_query"] = " ".join([r["text"] for r in q["runs"]])
+        elif 'searchPyvRenderer' in vid:
+            for entry in vid['searchPyvRenderer']['ads']:
+                entry = entry['promotedVideoRenderer']
+                desc = entry["description"]['simpleText']
+                title = entry['longBylineText']['runs'][0]["text"]
+                url = base_url + entry['longBylineText']['runs'][0][
+                    'navigationEndpoint']['browseEndpoint']['canonicalBaseUrl']
+                promoted.append(
+                    {"title": title,
+                     "description": desc,
+                     "url": url})
+        elif 'channelRenderer' in vid:
+            continue  # handled in first pass
         else:
             #continue
             # Debug, never reached this point
@@ -279,4 +291,5 @@ def search_youtube(query, location_code="US",
     data["related_videos"] = related_to_search
     data["related_queries"] = related_queries
     data["full_movies"] = movies
+    data["promoted"] = promoted
     return data
