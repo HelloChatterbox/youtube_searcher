@@ -49,7 +49,11 @@ def search_youtube(query, location_code="US",
             vid['navigationEndpoint']['commandMetadata']['webCommandMetadata'][
                 'url']
             featured_channel["title"] = vid["title"]["simpleText"]
-            d = [r["text"] for r in vid['descriptionSnippet']["runs"]]
+            if 'descriptionSnippet' in vid:
+                d = [r["text"] for r in vid['descriptionSnippet']["runs"]]
+            else:  # ocasionally happens?
+                d = vid["title"]["simpleText"].split(" ")
+
             featured_channel["description"] = " ".join(d)
             featured_channel["user_url"] = base_url + user
 
@@ -57,9 +61,13 @@ def search_youtube(query, location_code="US",
         if 'videoRenderer' in vid:
             vid = vid['videoRenderer']
             thumb = vid["thumbnail"]['thumbnails']
+            title = " ".join([r["text"] for r in vid['title']["runs"]])
 
-            d = [r["text"] for r in vid['title']["runs"]]
-            title = " ".join(d)
+            if 'descriptionSnippet' in vid:
+                desc = " ".join([
+                    r["text"] for r in vid['descriptionSnippet']["runs"]])
+            else:  # ocasionally happens
+                desc = title
 
             length_caption = \
                 vid["lengthText"]['accessibility']["accessibilityData"][
@@ -78,7 +86,8 @@ def search_youtube(query, location_code="US",
                     "length": length_txt,
                     "length_human": length_caption,
                     "videoId": videoId,
-                    "thumbnails": thumb
+                    "thumbnails": thumb,
+                    "description": desc
                 }
             )
         elif 'shelfRenderer' in vid:
