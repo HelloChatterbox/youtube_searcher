@@ -15,8 +15,11 @@ def search_youtube(query, location_code="US",
     }
     params = {"search_query": query,
               "gl": location_code}
+
+    # TODO dont cache if no results found
     html = session.get(base_url + "/results",
                        headers=headers, params=params).text
+
     soup = bs4.BeautifulSoup(html, 'html.parser')
     blob = str(soup.find('script', string=re.compile('ytInitialData')))
     s = """window["ytInitialData"] = """
@@ -25,6 +28,7 @@ def search_youtube(query, location_code="US",
     json_text = blob.split(s)[1].split(e)[0]
 
     results = json.loads(json_text)
+
     data = {"query": query, "corrected_query": query}
 
     videos = []
