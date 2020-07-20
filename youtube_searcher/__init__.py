@@ -15,15 +15,15 @@ def search_youtube(query, location_code="US",
     }
     params = {"search_query": query,
               "gl": location_code}
-    url = 'https://www.youtube.com/results'
-    html = session.get(url, headers=headers, params=params).text
+    html = session.get(base_url + "/results",
+                       headers=headers, params=params).text
     soup = bs4.BeautifulSoup(html, 'html.parser')
     blob = str(soup.find('script', string=re.compile('ytInitialData')))
     s = """window["ytInitialData"] = """
     e = """;
     window["ytInitialPlayerResponse"] = null;"""
     json_text = blob.split(s)[1].split(e)[0]
-    # print(json_text)
+
     results = json.loads(json_text)
     data = {"query": query, "corrected_query": query}
 
@@ -56,6 +56,7 @@ def search_youtube(query, location_code="US",
 
             featured_channel["description"] = " ".join(d)
             featured_channel["user_url"] = base_url + user
+            break
 
     for vid in primary:
         if 'videoRenderer' in vid:
@@ -224,7 +225,7 @@ def search_youtube(query, location_code="US",
         elif 'channelRenderer' in vid:
             continue  # handled in first pass
         else:
-            #continue
+            continue
             # Debug, never reached this point
             print(1)
             print(vid)
@@ -290,6 +291,7 @@ def search_youtube(query, location_code="US",
                             "playlistId": playlistId
                         })
                 else:
+                    continue
                     # Debug, never reached this point
                     print(2 )
                     print(entry)
