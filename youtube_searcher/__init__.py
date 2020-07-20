@@ -25,7 +25,7 @@ def search_youtube(query, location_code="US",
     json_text = blob.split(s)[1].split(e)[0]
     # print(json_text)
     results = json.loads(json_text)
-    data = {}
+    data = {"query": query, "corrected_query": query}
 
     videos = []
     playlists = []
@@ -197,10 +197,16 @@ def search_youtube(query, location_code="US",
         elif 'carouselAdRenderer' in vid:
             vid = vid["carouselAdRenderer"]
             # skip ads
+            'showingResultsForRenderer'
+        elif 'showingResultsForRenderer' in vid:
+            # auto correct for query
+            q = vid['showingResultsForRenderer']['correctedQuery']
+            data["corrected_query"] = " ".join([r["text"] for r in q["runs"]])
         else:
-            continue
+            #continue
             # Debug, never reached this point
-            # print(vid)
+            print(1)
+            print(vid)
 
     if contents.get("secondaryContents"):
         secondary = \
@@ -262,6 +268,10 @@ def search_youtube(query, location_code="US",
                             "thumbnails": thumbs,
                             "playlistId": playlistId
                         })
+                else:
+                    # Debug, never reached this point
+                    print(2 )
+                    print(entry)
 
     data["videos"] = videos
     data["playlists"] = playlists
