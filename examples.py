@@ -1,7 +1,9 @@
-from youtube_searcher import search_youtube
+from youtube_searcher import YoutubeSearcher
 from pprint import pprint
+
+yts = YoutubeSearcher()
 query = "Ask a spaceman"
-data = search_youtube(query)
+data = yts.search_youtube(query)
 
 pprint(data)
 """
