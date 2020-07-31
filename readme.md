@@ -13,10 +13,11 @@ pip install youtube_searcher
 
 
 ```python
-from youtube_searcher import search_youtube
+from youtube_searcher import YoutubeSearcher
 
+yts = YoutubeSearcher()
 query = "Rob Zombie"
-data = search_youtube(query)
+data = yts.search_youtube(query)
 
 """
 {'featured_channel': {'title': 'robzombie',
