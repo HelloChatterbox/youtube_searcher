@@ -75,9 +75,8 @@ def search_youtube(query, location_code="US",
                 desc = title
 
             length_caption = \
-                vid["lengthText"]['accessibility']["accessibilityData"][
-                    "label"]
-            length_txt = vid["lengthText"]['simpleText']
+                vid.get("lengthText", {}).get('accessibility', {}).get("accessibilityData", {}).get("label")
+            length_txt = vid.get("lengthText", {}).get('simpleText')
             videoId = vid['videoId']
             url = \
                 vid['navigationEndpoint']['commandMetadata'][
@@ -115,9 +114,9 @@ def search_youtube(query, location_code="US",
                 title = " ".join(d)
 
                 length_caption = \
-                    vid["lengthText"]['accessibility']["accessibilityData"][
-                        "label"]
-                length_txt = vid["lengthText"]['simpleText']
+                    vid.get("lengthText", {}).get('accessibility', {}).get("accessibilityData", {}).get("label")
+
+                length_txt = vid.get("lengthText", {}).get('simpleText')
                 videoId = vid['videoId']
                 url = vid['navigationEndpoint']['commandMetadata'][
                     'webCommandMetadata']['url']
@@ -257,10 +256,8 @@ def search_youtube(query, location_code="US",
                         vid['navigationEndpoint']['watchEndpoint'][
                             'playlistId']
                         length_caption = \
-                            vid["lengthText"]['accessibility'][
-                                "accessibilityData"][
-                                "label"]
-                        length_txt = vid["lengthText"]['simpleText']
+                            vid.get("lengthText", {}).get('accessibility', {}).get("accessibilityData", {}).get("label")
+                        length_txt = vid.get("lengthText", {}).get('simpleText')
 
                         # TODO investigate
                         # These seem to always be from featured channel
