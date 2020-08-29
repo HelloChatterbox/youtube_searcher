@@ -219,12 +219,15 @@ def search_youtube(query, location_code="US",
                 entry = entry['promotedVideoRenderer']
                 desc = entry["description"]['simpleText']
                 title = entry['longBylineText']['runs'][0]["text"]
-                url = base_url + entry['longBylineText']['runs'][0][
-                    'navigationEndpoint']['browseEndpoint']['canonicalBaseUrl']
-                promoted.append(
-                    {"title": title,
-                     "description": desc,
-                     "url": url})
+                try:
+                    url = base_url + entry['longBylineText']['runs'][0][
+                        'navigationEndpoint']['browseEndpoint']['canonicalBaseUrl']
+                    promoted.append(
+                        {"title": title,
+                         "description": desc,
+                         "url": url})
+                except Exception as e:
+                    print(e)
         elif 'channelRenderer' in vid:
             continue  # handled in first pass
         else:
@@ -242,37 +245,40 @@ def search_youtube(query, location_code="US",
             for entry in entries['lists']:
                 if 'verticalWatchCardListRenderer' in entry:
                     for vid in entry['verticalWatchCardListRenderer']["items"]:
-                        vid = vid['watchCardCompactVideoRenderer']
-                        thumbs = vid['thumbnail']['thumbnails']
+                        try:
+                            vid = vid['watchCardCompactVideoRenderer']
+                            thumbs = vid['thumbnail']['thumbnails']
 
-                        d = [r["text"] for r in vid['title']["runs"]]
-                        title = " ".join(d)
+                            d = [r["text"] for r in vid['title']["runs"]]
+                            title = " ".join(d)
 
-                        url = vid['navigationEndpoint']['commandMetadata'][
-                            'webCommandMetadata']['url']
-                        videoId = vid['navigationEndpoint']['watchEndpoint'][
-                            'videoId']
-                        playlistId = \
-                        vid['navigationEndpoint']['watchEndpoint'][
-                            'playlistId']
-                        length_caption = \
-                            vid.get("lengthText", {}).get('accessibility', {}).get("accessibilityData", {}).get("label")
-                        length_txt = vid.get("lengthText", {}).get('simpleText')
+                            url = vid['navigationEndpoint']['commandMetadata'][
+                                'webCommandMetadata']['url']
+                            videoId = vid['navigationEndpoint']['watchEndpoint'][
+                                'videoId']
+                            playlistId = \
+                            vid['navigationEndpoint']['watchEndpoint'][
+                                'playlistId']
+                            length_caption = \
+                                vid.get("lengthText", {}).get('accessibility', {}).get("accessibilityData", {}).get("label")
+                            length_txt = vid.get("lengthText", {}).get('simpleText')
 
-                        # TODO investigate
-                        # These seem to always be from featured channel
-                        # playlistId doesnt match any extracted playlist
-                        featured_channel["videos"].append(
-                            {
-                                "url": base_url + url,
-                                "title": title,
-                                "length": length_txt,
-                                "length_human": length_caption,
-                                "videoId": videoId,
-                                "playlistId": playlistId,
-                                "thumbnails": thumbs
-                            }
-                        )
+                            # TODO investigate
+                            # These seem to always be from featured channel
+                            # playlistId doesnt match any extracted playlist
+                            featured_channel["videos"].append(
+                                {
+                                    "url": base_url + url,
+                                    "title": title,
+                                    "length": length_txt,
+                                    "length_human": length_caption,
+                                    "videoId": videoId,
+                                    "playlistId": playlistId,
+                                    "thumbnails": thumbs
+                                }
+                            )
+                        except Exception as e:
+                            print(e)
 
                 elif 'horizontalCardListRenderer' in entry:
                     for vid in entry['horizontalCardListRenderer']['cards']:
