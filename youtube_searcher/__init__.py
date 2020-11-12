@@ -4,6 +4,17 @@ import json
 from youtube_searcher.session import session
 
 
+def _get_json(soup_blob):
+    # Make sure we always get the correct blob and santize it
+    blob = soup_blob.find('script', text=re.compile("ytInitialData"))
+    json_data = str(blob)[
+                str(blob).find('{\"responseContext\"'):str(blob).find(
+                    'module={}')]
+    json_data = re.split(r"\};", json_data)[0]
+    results = json.loads(json_data + "}")
+    return results
+
+
 def search_youtube(query, location_code="US",
                    user_agent='Mozilla/5.0 (X11; Linux x86_64) '
                               'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -21,13 +32,8 @@ def search_youtube(query, location_code="US",
                        headers=headers, params=params).text
 
     soup = bs4.BeautifulSoup(html, 'html.parser')
-    blob = str(soup.find('script', string=re.compile('ytInitialData')))
-    s = """window["ytInitialData"] = """
-    e = """;
-    window["ytInitialPlayerResponse"] = null;"""
-    json_text = blob.split(s)[1].split(e)[0]
 
-    results = json.loads(json_text)
+    results = _get_json(soup)
 
     data = {"query": query, "corrected_query": query}
 
@@ -50,8 +56,9 @@ def search_youtube(query, location_code="US",
         if 'channelRenderer' in vid:
             vid = vid['channelRenderer']
             user = \
-            vid['navigationEndpoint']['commandMetadata']['webCommandMetadata'][
-                'url']
+                vid['navigationEndpoint']['commandMetadata'][
+                    'webCommandMetadata'][
+                    'url']
             featured_channel["title"] = vid["title"]["simpleText"]
             if 'descriptionSnippet' in vid:
                 d = [r["text"] for r in vid['descriptionSnippet']["runs"]]
@@ -75,7 +82,8 @@ def search_youtube(query, location_code="US",
                 desc = title
 
             length_caption = \
-                vid.get("lengthText", {}).get('accessibility', {}).get("accessibilityData", {}).get("label")
+                vid.get("lengthText", {}).get('accessibility', {}).get(
+                    "accessibilityData", {}).get("label")
             length_txt = vid.get("lengthText", {}).get('simpleText')
             videoId = vid['videoId']
             url = \
@@ -114,7 +122,8 @@ def search_youtube(query, location_code="US",
                 title = " ".join(d)
 
                 length_caption = \
-                    vid.get("lengthText", {}).get('accessibility', {}).get("accessibilityData", {}).get("label")
+                    vid.get("lengthText", {}).get('accessibility', {}).get(
+                        "accessibilityData", {}).get("label")
 
                 length_txt = vid.get("lengthText", {}).get('simpleText')
                 videoId = vid['videoId']
@@ -196,8 +205,11 @@ def search_youtube(query, location_code="US",
             videoId = vid['videoId']
             meta = vid['bottomMetadataItems']
             meta = [m["simpleText"] for m in meta]
-            desc = " ".join([r["text"] for r in vid['descriptionSnippet']["runs"]])
-            url = vid['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url']
+            desc = " ".join(
+                [r["text"] for r in vid['descriptionSnippet']["runs"]])
+            url = \
+            vid['navigationEndpoint']['commandMetadata']['webCommandMetadata'][
+                'url']
 
             movies.append({
                 "title": title,
@@ -235,8 +247,8 @@ def search_youtube(query, location_code="US",
 
     if contents.get("secondaryContents"):
         secondary = \
-        contents["secondaryContents"]["secondarySearchContainerRenderer"][
-            "contents"][0]["universalWatchCardRenderer"]
+            contents["secondaryContents"]["secondarySearchContainerRenderer"][
+                "contents"][0]["universalWatchCardRenderer"]
         for vid in secondary["sections"]:
             entries = vid['watchCardSectionSequenceRenderer']
             for entry in entries['lists']:
@@ -253,11 +265,14 @@ def search_youtube(query, location_code="US",
                         videoId = vid['navigationEndpoint']['watchEndpoint'][
                             'videoId']
                         playlistId = \
-                        vid['navigationEndpoint']['watchEndpoint'][
-                            'playlistId']
+                            vid['navigationEndpoint']['watchEndpoint'][
+                                'playlistId']
                         length_caption = \
-                            vid.get("lengthText", {}).get('accessibility', {}).get("accessibilityData", {}).get("label")
-                        length_txt = vid.get("lengthText", {}).get('simpleText')
+                            vid.get("lengthText", {}).get('accessibility',
+                                                          {}).get(
+                                "accessibilityData", {}).get("label")
+                        length_txt = vid.get("lengthText", {}).get(
+                            'simpleText')
 
                         # TODO investigate
                         # These seem to always be from featured channel
@@ -278,8 +293,8 @@ def search_youtube(query, location_code="US",
                     for vid in entry['horizontalCardListRenderer']['cards']:
                         vid = vid['searchRefinementCardRenderer']
                         playlistId = \
-                        vid['searchEndpoint']['watchPlaylistEndpoint'][
-                            'playlistId']
+                            vid['searchEndpoint']['watchPlaylistEndpoint'][
+                                'playlistId']
                         thumbs = vid['thumbnail']['thumbnails']
                         url = vid['searchEndpoint']['commandMetadata'][
                             'webCommandMetadata']['url']
@@ -294,7 +309,7 @@ def search_youtube(query, location_code="US",
                 else:
                     continue
                     # Debug, never reached this point
-                    print(2 )
+                    print(2)
                     print(entry)
 
     data["videos"] = videos
