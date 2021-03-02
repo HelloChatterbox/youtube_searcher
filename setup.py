@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='youtube_searcher',
-    version='0.1.4',
+    version='0.1.5',
     packages=['youtube_searcher'],
     url='https://github.com/HelloChatterbox/youtube_searcher',
     license='Apache',

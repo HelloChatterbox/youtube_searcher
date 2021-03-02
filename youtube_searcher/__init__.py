@@ -1,18 +1,7 @@
 import bs4
-import re
-import json
 from youtube_searcher.session import session
-
-
-def _get_json(soup_blob):
-    # Make sure we always get the correct blob and santize it
-    blob = soup_blob.find('script', text=re.compile("ytInitialData"))
-    json_data = str(blob)[
-                str(blob).find('{\"responseContext\"'):str(blob).find(
-                    'module={}')]
-    json_data = re.split(r"\};", json_data)[0]
-    results = json.loads(json_data + "}")
-    return results
+from youtube_searcher.parse import extract_videos, \
+    extract_videos_from_playlists, extract_playlists, _extract_json_blob
 
 
 def search_youtube(query, location_code="US",
@@ -33,7 +22,7 @@ def search_youtube(query, location_code="US",
 
     soup = bs4.BeautifulSoup(html, 'html.parser')
 
-    results = _get_json(soup)
+    results = _extract_json_blob(soup)
 
     data = {"query": query, "corrected_query": query}
 
