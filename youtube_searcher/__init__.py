@@ -18,6 +18,7 @@ def search_youtube(query, location_code="US",
 
     # TODO dont cache if no results found
     html = session.get(base_url + "/results",
+                       cookies={'CONSENT': 'PENDING+999'},
                        headers=headers, params=params).text
 
     soup = bs4.BeautifulSoup(html, 'html.parser')
